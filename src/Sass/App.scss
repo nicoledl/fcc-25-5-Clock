@@ -1,0 +1,46 @@
+body {
+  background-color: cadetblue !important;
+  color: aliceblue;
+  word-spacing: 0.2rem;
+}
+
+.App {
+  height: 100vh;
+  align-items: center;
+  font-family: Georgia, "Times New Roman", Times, serif;
+}
+
+p {
+  font-size: larger;
+}
+
+img,
+svg {
+  vertical-align: middle;
+  color: antiquewhite;
+  font-size: larger;
+  margin: 2px;
+  transition: color 0.2s ease-in-out;
+}
+svg:hover {
+  color: rgb(218, 192, 159);
+}
+
+.counters {
+  justify-content: space-between;
+  div {
+    margin: 10px;
+    p {
+      margin: 2px;
+    }
+    * {
+      justify-content: center;
+      align-items: center;
+    }
+  }
+}
+
+.timer {
+  display: grid;
+  justify-content: center;
+}
