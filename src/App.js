@@ -1,5 +1,5 @@
 import Clock from "./Components/Clock";
-import "./Sass/App.scss"
+import "./Sass/App.scss";
 
 function App() {
   return (

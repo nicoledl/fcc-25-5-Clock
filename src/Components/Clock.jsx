@@ -1,16 +1,177 @@
-import Timer from "./Timer";
-import CounterBreak from "./CounterBreak";
-import CounterSession from "./CounterSession";
+// import Timer from "./Timer";
+// import CounterBreak from "./CounterBreak";
+// import CounterSession from "./CounterSession";
+import { useEffect, useState } from "react";
+import $ from "jquery";
+import timerSound from "../assets/timer-sound.wav";
 
 const Clock = () => {
+  const [interval, setInterval] = useState(5);
+  const [session, setSession] = useState(25);
+
+  const [isRunning, setIsRunning] = useState(false);
+
+  const [timeLeft, setTimeLeft] = useState(session * 60);
+
+  const [title, setTitle] = useState("Session");
+  const [playSound, setPlaySound] = useState(false);
+
+  useEffect(() => {
+    let timerId;
+
+    if (isRunning && timeLeft > 0) {
+      timerId = setTimeout(() => {
+        setTimeLeft(timeLeft - 1);
+      }, 1000);
+    } else if (isRunning && timeLeft === 0) {
+      setPlaySound(true);
+      title === "Session" ? setTitle("Break") : setTitle("Session");
+      title === "Session"
+        ? setTimeLeft(interval * 60)
+        : setTimeLeft(session * 60);
+    }
+
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [isRunning, timeLeft, interval, session, title]);
+
+  useEffect(() => {
+    if (playSound) {
+      const audio = new Audio(timerSound);
+      audio.play();
+      setPlaySound(false);
+    }
+  }, [playSound]);
+
+  function formatNumberAsTime(minutes, seconds) {
+    const totalSeconds = minutes * 60 + seconds;
+    const formattedMinutes = Math.floor(totalSeconds / 60)
+      .toString()
+      .padStart(2, "0");
+    const formattedSeconds = (totalSeconds % 60).toString().padStart(2, "0");
+    return `${formattedMinutes}:${formattedSeconds}`;
+  }
+
+  function disable(status) {
+    status
+      ? $("#controls").css({
+          "pointer-events": "auto",
+          opacity: 1,
+        })
+      : $("#controls").css({
+          "pointer-events": "none",
+          opacity: 0.5,
+        });
+  }
+
   return (
     <div>
       <h1>25 + 5 Clock</h1>
-      <div className="counters d-flex">
+
+      <div id="controls" className="counters d-flex">
+        <div className="m-4">
+          <h5 id="break-label">Break Length</h5>
+          <div className="d-flex justify-content-center">
+            <button
+              id="break-decrement"
+              onClick={() => {
+                if (interval > 1) {
+                  setInterval(interval - 1);
+                }
+                return;
+              }}
+            >
+              -
+            </button>
+            <p id="break-length">{interval}</p>
+            <button
+              id="break-increment"
+              onClick={() => {
+                if (interval < 60) {
+                  setInterval(interval + 1);
+                }
+                return;
+              }}
+            >
+              +
+            </button>
+          </div>
+        </div>
+        <div className="m-4">
+          <h5 id="session-label">Session Length</h5>
+          <div className="d-flex  justify-content-center">
+            <button
+              id="session-decrement"
+              onClick={() => {
+                if (session > 1) {
+                  setSession(session - 1);
+                  setTimeLeft((session - 1) * 60);
+                }
+                return;
+              }}
+            >
+              -
+            </button>
+            <p id="session-length">{session}</p>
+            <button
+              id="session-increment"
+              onClick={() => {
+                if (session < 60) {
+                  setSession(session + 1);
+                  setTimeLeft((session + 1) * 60);
+                }
+                return;
+              }}
+            >
+              +
+            </button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div>
+          <h5 id="timer-label">{title}</h5>
+          <p id="time-left">
+            {formatNumberAsTime(Math.floor(timeLeft / 60), timeLeft % 60)}
+            {console.log( formatNumberAsTime(Math.floor(timeLeft / 60), timeLeft % 60))}
+          </p>
+        </div>
+        <div>
+          <button
+            id="start_stop"
+            onClick={() => {
+              setIsRunning(!isRunning);
+              disable(isRunning);
+            }}
+          >
+            Play/Pause
+          </button>
+          <button
+            id="reset"
+            onClick={() => {
+              setIsRunning(false);
+              setInterval(5);
+              setSession(25);
+              setTimeLeft(25 * 60);
+              disable(true);
+              setPlaySound(false);
+            }}
+          >
+            Reset
+          </button>
+        </div>
+      </div>
+      <audio
+        id="beep"
+        preload="auto"
+        src="https://raw.githubusercontent.com/freeCodeCamp/cdn/master/build/testable-projects-fcc/audio/BeepSound.wav"
+      ></audio>
+      {/* <div className="counters d-flex">
         <CounterBreak />
         <CounterSession />
-      </div>
-      <Timer />
+      </div> */}
+      {/* <Timer /> */}
     </div>
   );
 };
