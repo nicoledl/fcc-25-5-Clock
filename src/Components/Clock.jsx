@@ -1,48 +1,39 @@
-// import Timer from "./Timer";
-// import CounterBreak from "./CounterBreak";
-// import CounterSession from "./CounterSession";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import $ from "jquery";
 import timerSound from "../assets/timer-sound.wav";
 
 const Clock = () => {
   const [interval, setInterval] = useState(5);
   const [session, setSession] = useState(25);
-
   const [isRunning, setIsRunning] = useState(false);
-
   const [timeLeft, setTimeLeft] = useState(session * 60);
-
   const [title, setTitle] = useState("Session");
-  const [playSound, setPlaySound] = useState(false);
+  const audioElement = useRef(null);
 
   useEffect(() => {
     let timerId;
 
-    if (isRunning && timeLeft > 0) {
+    if (isRunning && timeLeft >= 0) {
       timerId = setTimeout(() => {
-        setTimeLeft(timeLeft - 1);
+        setTimeLeft((prevTimeLeft) => prevTimeLeft - 1);
       }, 1000);
-    } else if (isRunning && timeLeft === 0) {
-      setPlaySound(true);
-      title === "Session" ? setTitle("Break") : setTitle("Session");
-      title === "Session"
-        ? setTimeLeft(interval * 60)
-        : setTimeLeft(session * 60);
+    } else if (isRunning && timeLeft < 0) {
+      audioElement.current.play();
+
+      if (title === "Session") {
+        setTitle("Break");
+        setTimeLeft(interval * 60);
+      } else {
+        setTitle("Session");
+        setTimeLeft(session * 60);
+      }
     }
 
     return () => {
       clearTimeout(timerId);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRunning, timeLeft, interval, session, title]);
-
-  useEffect(() => {
-    if (playSound) {
-      const audio = new Audio(timerSound);
-      audio.play();
-      setPlaySound(false);
-    }
-  }, [playSound]);
 
   function formatNumberAsTime(minutes, seconds) {
     const totalSeconds = minutes * 60 + seconds;
@@ -64,6 +55,16 @@ const Clock = () => {
           opacity: 0.5,
         });
   }
+
+  const handleResetButton = () => {
+    setIsRunning(false);
+    setInterval(5);
+    setSession(25);
+    setTimeLeft(25 * 60);
+    disable(true);
+    setTitle("Session");
+    audioElement.current.load();
+  };
 
   return (
     <div>
@@ -134,7 +135,6 @@ const Clock = () => {
           <h5 id="timer-label">{title}</h5>
           <p id="time-left">
             {formatNumberAsTime(Math.floor(timeLeft / 60), timeLeft % 60)}
-            {console.log( formatNumberAsTime(Math.floor(timeLeft / 60), timeLeft % 60))}
           </p>
         </div>
         <div>
@@ -147,17 +147,7 @@ const Clock = () => {
           >
             Play/Pause
           </button>
-          <button
-            id="reset"
-            onClick={() => {
-              setIsRunning(false);
-              setInterval(5);
-              setSession(25);
-              setTimeLeft(25 * 60);
-              disable(true);
-              setPlaySound(false);
-            }}
-          >
+          <button id="reset" onClick={handleResetButton}>
             Reset
           </button>
         </div>
@@ -165,13 +155,9 @@ const Clock = () => {
       <audio
         id="beep"
         preload="auto"
-        src="https://raw.githubusercontent.com/freeCodeCamp/cdn/master/build/testable-projects-fcc/audio/BeepSound.wav"
+        ref={audioElement}
+        src={timerSound}
       ></audio>
-      {/* <div className="counters d-flex">
-        <CounterBreak />
-        <CounterSession />
-      </div> */}
-      {/* <Timer /> */}
     </div>
   );
 };
